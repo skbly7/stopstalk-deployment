@@ -1,3 +1,16 @@
+/* Get a url parameter by the key from a string url */
+var getParameterByName = function (name, url) {
+    if (!url) {
+      url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+};
+
 (function($) {
     "use strict";
 
@@ -60,19 +73,6 @@
             .replace(/</g, "&lt;")
             .replace(/"/g, "&quot;").trim(' ');
     };
-
-    /* Get a url parameter by the key from a string url */
-    var getParameterByName = function (name, url) {
-        if (!url) {
-          url = window.location.href;
-        }
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
 
     $(document).ready(function() {
 

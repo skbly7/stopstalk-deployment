@@ -1,0 +1,22 @@
+    <tr>
+        <th>Rank</th>
+        <th>Country</th>
+        <th>Name</th>
+        <th>StopStalk Handle</th>
+        <th>Institute</th>
+        <th>StopStalk Rating</th>
+        <th>Rating Changes</th>
+        <th>Per Day Changes</th>
+    </tr>
+    {{#leaderboardRows}}
+        <tr>
+            <td>{{user_rank}}</td>
+            <td>{{user_country}}</td>
+            <td>{{user_name}}</td>
+            <td>{{user_stopstalk_handle}}</td>
+            <td>{{user_institute}}</td>
+            <td>{{user_stopstalk_rating}}</td>
+            <td>{{user_rating_change}}</td>
+            <td>{{user_per_day_change}}</td>
+        </tr>
+    {{/leaderboardRows}}

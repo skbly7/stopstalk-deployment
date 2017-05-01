@@ -21,7 +21,51 @@
         return finalObject;
     };
 
+    var getLeaderboardRows = function()  {
+        $.ajax({
+            method: 'GET',
+            url: '/default/leaderboard_data.json',
+            data: {'q': getParameterByName('q', window.location.href),
+                   'global': getParameterByName('global', window.location.href)},
+            success: function(response) {
+                $('#leaderboard-heading').html(response["heading"]);
+                $('title')[0].text = response["heading"];
+                $.ajax({
+                    method: 'GET',
+                    url: '/static/css/partials/leaderboard-partial.html',
+                    success: function(htmlResponse) {
+                        var allUsers = response["users"].map(function(row) {
+                            return {
+                                        user_rank: row[0],
+                                        user_name: row[1],
+                                        user_stopstalk_handle: row[2],
+                                        user_institute: row[3],
+                                        user_rating: row[4],
+                                        user_per_day_change: row[5],
+                                        user_custom: row[6],
+                                        user_rating_change: row[7],
+                                        user_country: row[8]
+                                    };
+                        });
+                        var renderedLeaderboard = Mustache.render(htmlResponse, {leaderboardRows: allUsers});
+                        $('#leaderboard-content').html(renderedLeaderboard);
+
+                    },
+                    error: function(err) {
+
+                    }
+                });
+                console.log(response);
+            },
+            error: function(err) {
+                console.log(err);
+            }
+        });
+    };
+
     $(document).ready(function() {
+
+        getLeaderboardRows();
 
         $('#submission-switch').click(function() {
             var global = this.checked;

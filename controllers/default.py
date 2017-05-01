@@ -502,6 +502,30 @@ def updates():
 
 # ------------------------------------------------------------------------------
 def leaderboard():
+    global_leaderboard = False
+    heading = T("Global Leaderboard")
+
+    if request.vars.has_key("q") and request.vars["q"]:
+        heading = T("Institute Leaderboard")
+
+    if request.vars.has_key("global"):
+        if request.vars["global"] == "":
+            heading = T("Friends Leaderboard")
+            request.vars["global"] = "False"
+        if request.vars["global"] == "True":
+            global_leaderboard = True
+        else:
+            if not auth.is_logged_in():
+                response.flash = T("Login to see Friends Leaderboard")
+                global_leaderboard = True
+    else:
+        if not auth.is_logged_in():
+            global_leaderboard = True
+
+    return dict(global_leaderboard=global_leaderboard, heading=heading)
+
+# ------------------------------------------------------------------------------
+def leaderboard_data():
     """
         Get a table with users sorted by rating
     """
@@ -512,6 +536,9 @@ def leaderboard():
 
     global_leaderboard = False
     if request.vars.has_key("global"):
+        if request.vars["global"] == "":
+            request.vars["global"] = "False"
+
         if request.vars["global"] == "True":
             global_leaderboard = True
         else:
@@ -546,7 +573,7 @@ def leaderboard():
     # Do not display unverified users in the leaderboard
     aquery &= (atable.registration_key == "")
 
-    if request.vars.has_key("q"):
+    if request.vars.has_key("q") and request.vars["q"]:
         heading = T("Institute Leaderboard")
         institute = request.vars["q"]
 
@@ -562,7 +589,6 @@ def leaderboard():
         custom_users = db(cquery).select(*cfields)
 
     users = []
-
     def _update_users(user_list, custom):
 
         for user in user_list:
@@ -570,20 +596,28 @@ def leaderboard():
             if custom and user.duplicate_cu:
                 record = cftable(user.duplicate_cu)
 
-            users.append((user.first_name + " " + user.last_name,
+            users.append([user.first_name + " " + user.last_name,
                           user.stopstalk_handle,
                           user.institute,
                           int(record.rating),
                           float(record.per_day_change),
                           custom,
                           int(record.rating) - int(record.prev_rating),
-                          record.country))
+                          record.country])
 
     _update_users(reg_users, False)
     _update_users(custom_users, True)
 
     # Sort users according to the rating
     users = sorted(users, key=lambda x: x[3], reverse=True)
+    ranked_users = []
+    rank = 1
+
+    for user in users:
+        ranked_users.append([rank] + user)
+        rank += 1
+
+    return dict(users=ranked_users, heading=heading)
 
     table = TABLE(_class="centered bordered")
     table.append(THEAD(TR(TH(T("Rank")),
@@ -596,7 +630,6 @@ def leaderboard():
                           TH(T("Per Day Changes")))))
 
     tbody = TBODY()
-    rank = 1
     for i in users:
         if i[5]:
             span = SPAN(_class="orange tooltipped",
@@ -652,15 +685,9 @@ def leaderboard():
                         _style="color: #f00;")))
 
         tbody.append(tr)
-        rank += 1
 
     table.append(tbody)
-    switch = DIV(LABEL(H6(T("Friends"),
-                          INPUT(_type="checkbox", _id="submission-switch"),
-                          SPAN(_class="lever pink accent-3"),
-                          T("Global"))),
-                 _class="switch")
-    div = TAG[""](switch, table)
+    div = TAG[""](table)
     return dict(div=div,
                 heading=heading,
                 global_leaderboard=global_leaderboard)
